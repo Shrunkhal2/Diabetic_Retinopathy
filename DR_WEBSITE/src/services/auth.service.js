@@ -1,47 +1,34 @@
-import { storageService, STORAGE_KEYS } from './storage.service';
+import axios from "axios";
 
-// Simple but defensible authentication service
-// Designed to be replaceable with real backend auth later
+const API = "http://localhost:5000/api/doctors";
 
 export const authService = {
-  login(username, password) {
-    // Basic validation (prototype-level)
-    if (!username || !password) {
-      throw new Error('Invalid credentials');
-    }
+  async login(email, password) {
+    const response = await axios.post(`${API}/login`, {
+      email,
+      password,
+    });
 
-    const authPayload = {
-      token: 'mock-jwt-token',
-      user: {
-        username,
-        role: 'doctor'
-      },
-      expiresAt: Date.now() + 60 * 60 * 1000 // 1 hour
-    };
+    localStorage.setItem("token", response.data.token);
+    localStorage.setItem("doctor", JSON.stringify(response.data.doctor));
 
-    storageService.set(STORAGE_KEYS.AUTH, authPayload);
-    return authPayload;
+    return response.data;
+  },
+
+  async register(name, email, password) {
+    return await axios.post(`${API}/register`, {
+      name,
+      email,
+      password,
+    });
   },
 
   logout() {
-    storageService.remove(STORAGE_KEYS.AUTH);
+    localStorage.removeItem("token");
+    localStorage.removeItem("doctor");
   },
 
   isAuthenticated() {
-    const session = storageService.get(STORAGE_KEYS.AUTH);
-    if (!session) return false;
-
-    // Token expiry check
-    if (session.expiresAt < Date.now()) {
-      this.logout();
-      return false;
-    }
-
-    return true;
+    return !!localStorage.getItem("token");
   },
-
-  getCurrentUser() {
-    const session = storageService.get(STORAGE_KEYS.AUTH);
-    return session?.user || null;
-  }
 };

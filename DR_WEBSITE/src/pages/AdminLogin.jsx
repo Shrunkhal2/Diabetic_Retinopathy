@@ -1,16 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, ShieldCheck, Loader2 } from "lucide-react";
-import { authService } from "../services/auth.service";
+import axios from "axios";
 import { useAppContext } from "../context/AppContext";
+import { Eye, Loader2, ShieldCheck } from "lucide-react";
 
-
-const Login = () => {
+function AdminLogin() {
   const navigate = useNavigate();
-  const { setIsAuthenticated } = useAppContext();
+  const { setUser } = useAppContext();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,20 +22,35 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await authService.login(username, password);
-      setIsAuthenticated(true);
-      navigate("/dashboard");
+        const res = await axios.post(
+            "http://localhost:5000/api/doctors/login",
+            form
+        );
+
+        console.log("Response:", res.data);
+
+        if (res.data.role !== "admin") {
+            setError("Not authorized as admin");
+            return;
+        }
+
+        setUser(res.data);
+        localStorage.setItem("user", JSON.stringify(res.data));
+
+        navigate("/admin-dashboard");
+
     } catch (err) {
-      setError("Invalid email or password");
+        console.log("LOGIN ERROR:", err);
+        setError(err.response?.data?.message || "Invalid credentials");
+    } finally {
       setLoading(false);
     }
   };
 
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-indigo-100 px-4">
       <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
-        
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
@@ -42,10 +59,10 @@ const Login = () => {
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-800">
-            EyeCare Doctor Portal
+            Admin Portal
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Secure access to Diabetic Retinopathy Dashboard
+            Secure access to Admin Dashboard
           </p>
         </div>
 
@@ -58,17 +75,19 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
-              Username
+              Email
             </label>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              type="email"
+              value={form.email}
+              onChange={(e) =>
+                setForm({ ...form, email: e.target.value })
+              }
+              placeholder="Enter admin email"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               required
             />
           </div>
@@ -79,10 +98,12 @@ const Login = () => {
             </label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              value={form.password}
+              onChange={(e) =>
+                setForm({ ...form, password: e.target.value })
+              }
+              placeholder="Enter admin password"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               required
             />
           </div>
@@ -105,21 +126,9 @@ const Login = () => {
             )}
           </button>
         </form>
-
-        {/* Footer */}
-        <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => navigate("/admin-login")}
-              className="text-sm text-gray-600 hover:text-blue-600 underline"
-            >
-              Admin Access
-            </button>
-          </div>
-
       </div>
     </div>
   );
-};
+}
 
-export default Login;
+export default AdminLogin;

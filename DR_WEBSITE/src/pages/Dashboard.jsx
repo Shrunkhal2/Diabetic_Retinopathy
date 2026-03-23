@@ -1,8 +1,18 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, UserPlus, Users, FileText, Calendar } from 'lucide-react';
-import { storageService } from '../services/storage.service';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Search,
+  UserPlus,
+  Users,
+  FileText,
+  Calendar,
+  LogOut,
+} from "lucide-react";
+import { storageService } from "../services/storage.service";
+import { authService } from "../services/auth.service";
 
+
+// 🔹 Reusable Stat Card Component
 const StatCard = ({ icon: Icon, title, value, color }) => (
   <div className={`p-6 rounded-lg ${color}`}>
     <div className="flex items-center justify-between">
@@ -15,6 +25,8 @@ const StatCard = ({ icon: Icon, title, value, color }) => (
   </div>
 );
 
+
+// 🔹 Main Dashboard Component
 const Dashboard = () => {
   const navigate = useNavigate();
 
@@ -32,22 +44,29 @@ const Dashboard = () => {
     navigate(`/patient/${id}`);
   };
 
+
+
   return (
     <div className="max-w-7xl mx-auto p-6">
+      
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Welcome to EyeCare Portal
-        </h1>
-        <p className="text-gray-600">
-          Manage patients and eye examination records
-        </p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Welcome to EyeCare Portal
+          </h1>
+          <p className="text-gray-600">
+            Manage patients and eye examination records
+          </p>
+        </div>
+
+        
       </div>
 
       {/* Quick Actions */}
       <div className="grid md:grid-cols-2 gap-6 mb-10">
         <button
-          onClick={() => navigate('/search')}
+          onClick={() => navigate("/search")}
           className="p-8 bg-white rounded-xl shadow hover:shadow-lg transition text-left"
         >
           <Search className="h-10 w-10 text-blue-600 mb-4" />
@@ -96,7 +115,7 @@ const Dashboard = () => {
         <StatCard
           icon={FileText}
           title="Reports Generated"
-          value={sessions.filter(s => s.status === 'completed').length}
+          value={sessions.filter((s) => s.status === "completed").length}
           color="bg-orange-50 text-orange-800"
         />
       </div>
